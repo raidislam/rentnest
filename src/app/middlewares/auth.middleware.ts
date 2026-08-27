@@ -67,3 +67,19 @@ export const requireLandlord = (
 
   next();
 };
+
+export const requireTenant = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.user?.role !== "TENANT") {
+    return res.status(403).json({
+      success: false,
+      message: "Only tenants can perform this action",
+      errorDetails: null,
+    });
+  }
+
+  next();
+};
