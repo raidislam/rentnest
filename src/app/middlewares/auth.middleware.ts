@@ -1,6 +1,6 @@
-import { JwtPayload } from './../../types/jwt';
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+
 interface JwtPayload {
   userId: string;
   role: string;
@@ -46,11 +46,10 @@ export const authenticate = (
     return res.status(401).json({
       success: false,
       message: "Invalid or expired token",
-      errorDetails: error,
+      errorDetails: null,
     });
   }
 };
-
 
 export const requireLandlord = (
   req: Request,
@@ -84,7 +83,6 @@ export const requireTenant = (
   next();
 };
 
-
 export const requireAdmin = (
   req: Request,
   res: Response,
@@ -100,3 +98,4 @@ export const requireAdmin = (
 
   next();
 };
+
