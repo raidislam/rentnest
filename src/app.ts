@@ -6,6 +6,8 @@ import propertyRoutes from "./app/modules/property/property.route";
 import landlordPropertyRoutes from "./app/modules/property/landlord.property.route";
 import rentalRoutes from "./app/modules/rental/rental.route";
 import landlordRentalRoutes from "./app/modules/rental/landlord.rental.route";
+import paymentRoutes from "./app/modules/payment/payment.route";
+import reviewRoutes from "./app/modules/review/review.route";
 
 const app = express();
 
@@ -26,5 +28,9 @@ app.use("/api/properties",propertyRoutes);
 app.use("/api/landlord/properties",landlordPropertyRoutes);
 app.use("/api/rentals", rentalRoutes);
 app.use("/api/landlord",landlordRentalRoutes);
+app.use("/api/payments",paymentRoutes);
+app.use("/api/reviews", reviewRoutes);
+
+
 
 export default app;
