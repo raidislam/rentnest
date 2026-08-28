@@ -83,3 +83,20 @@ export const requireTenant = (
 
   next();
 };
+
+
+export const requireAdmin = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.user?.role !== "ADMIN") {
+    return res.status(403).json({
+      success: false,
+      message: "Admin access required",
+      errorDetails: null,
+    });
+  }
+
+  next();
+};
