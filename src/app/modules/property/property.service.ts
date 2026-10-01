@@ -43,11 +43,58 @@ export const createProperty = async (
   return property;
 };
 
-export const getAllProperties = async () => {
+export const getAllProperties = async (filters?: {
+  location?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  propertyType?: string;
+  amenity?: string;
+}) => {
   const properties = await prisma.property.findMany({
     where: {
       availability: true,
+
+      ...(filters?.location && {
+        location: {
+          contains: filters.location,
+          mode: "insensitive",
+        },
+      }),
+
+      ...(filters?.minPrice !== undefined && {
+        price: {
+          gte: filters.minPrice,
+        },
+      }),
+
+      ...(filters?.maxPrice !== undefined && {
+        price: {
+          lte: filters.maxPrice,
+        },
+      }),
+
+      ...(filters?.minPrice !== undefined &&
+        filters?.maxPrice !== undefined && {
+          price: {
+            gte: filters.minPrice,
+            lte: filters.maxPrice,
+          },
+        }),
+
+      ...(filters?.propertyType && {
+        propertyType: {
+          equals: filters.propertyType,
+          mode: "insensitive",
+        },
+      }),
+
+      ...(filters?.amenity && {
+        amenities: {
+          has: filters.amenity,
+        },
+      }),
     },
+
     include: {
       category: true,
       landlord: {
@@ -57,6 +104,7 @@ export const getAllProperties = async () => {
         },
       },
     },
+
     orderBy: {
       createdAt: "desc",
     },

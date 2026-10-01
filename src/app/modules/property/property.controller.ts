@@ -19,7 +19,34 @@ export const getProperties = async (
   res: Response,
 ) => {
   try {
-    const properties = await getAllProperties();
+    const filters = {
+      location:
+        typeof req.query.location === "string"
+          ? req.query.location
+          : undefined,
+
+      minPrice:
+        typeof req.query.minPrice === "string"
+          ? Number(req.query.minPrice)
+          : undefined,
+
+      maxPrice:
+        typeof req.query.maxPrice === "string"
+          ? Number(req.query.maxPrice)
+          : undefined,
+
+      propertyType:
+        typeof req.query.propertyType === "string"
+          ? req.query.propertyType
+          : undefined,
+
+      amenity:
+        typeof req.query.amenity === "string"
+          ? req.query.amenity
+          : undefined,
+    };
+
+    const properties = await getAllProperties(filters);
 
     res.status(200).json({
       success: true,
