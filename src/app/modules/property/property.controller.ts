@@ -67,7 +67,7 @@ export const getProperty = async (
   res: Response,
 ) => {
   try {
-    const property = await getPropertyById(req.params.id);
+    const property = await getPropertyById(req.params.id as string);
 
     res.status(200).json({
       success: true,
@@ -117,7 +117,7 @@ export const update = async (
     const validatedData = updatePropertySchema.parse(req.body);
 
     const property = await updateProperty(
-      req.params.id,
+      req.params.id as string,
       req.user!.userId,
       validatedData,
     );
@@ -142,7 +142,7 @@ export const remove = async (
 ) => {
   try {
     await deleteProperty(
-      req.params.id,
+      req.params.id as string,
       req.user!.userId,
     );
 

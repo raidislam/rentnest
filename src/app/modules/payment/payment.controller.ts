@@ -95,7 +95,7 @@ export const getPaymentByIdController = async (
 ) => {
   try {
     const payment = await getPaymentById(
-      req.params.id,
+      req.params.id as string,
       req.user!.userId,
     );
 

@@ -60,7 +60,7 @@ export const createPayment = async (
   const paymentData = {
     store_id: sslcommerzConfig.storeId,
     store_passwd: sslcommerzConfig.storePassword,
-    total_amount: Number(payment.amount),
+    total_amount: String(payment.amount),
     currency: "BDT",
     tran_id: payment.transactionId,
 
@@ -125,6 +125,44 @@ export const confirmPayment = async (transactionId: string) => {
 
   if (payment.status === "COMPLETED") {
     return payment;
+  }
+
+  const validationUrl = sslcommerzConfig.isLive
+    ? "https://securepay.sslcommerz.com/validator/api/validationserverAPI.php"
+    : "https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php";
+
+  const response = await axios.get(validationUrl, {
+    params: {
+      val_id: transactionId,
+      store_id: sslcommerzConfig.storeId,
+      store_passwd: sslcommerzConfig.storePassword,
+      format: "json",
+    },
+  });
+
+  const validationData = response.data;
+
+  if (
+    validationData?.status !== "VALID" &&
+    validationData?.status !== "VALIDATED"
+  ) {
+    throw new Error("Payment validation failed");
+  }
+
+  if (
+    validationData?.tran_id !== payment.transactionId
+  ) {
+    throw new Error("Transaction ID mismatch");
+  }
+
+  if (
+    Number(validationData?.amount) !== Number(payment.amount)
+  ) {
+    throw new Error("Payment amount mismatch");
+  }
+
+  if (validationData?.currency !== "BDT") {
+    throw new Error("Payment currency mismatch");
   }
 
   const updatedPayment = await prisma.payment.update({

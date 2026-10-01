@@ -39,10 +39,7 @@ export const updateUserStatusController = async (
       req.body,
     );
 
-    const user = await updateUserStatus(
-      req.params.id,
-      validatedData.status,
-    );
+    const user = await updateUserStatus(req.params.id as string,validatedData.status);
 
     res.status(200).json({
       success: true,

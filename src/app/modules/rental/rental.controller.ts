@@ -1,13 +1,5 @@
 import { Request, Response } from "express";
-
-
-import {
-  createRentalRequest,
-  getMyRentalRequests,
-  getRentalRequestById,
-  getLandlordRentalRequests,
-  updateRentalRequest,
-} from "./rental.service";
+import { createRentalRequest,getMyRentalRequests,getRentalRequestById, getLandlordRentalRequests,updateRentalRequest,completeRentalRequest} from "./rental.service";
 import { createRentalRequestSchema, updateRentalRequestSchema } from "./rental.validation";
 
 export const createRental = async (
@@ -68,7 +60,7 @@ export const getRentalById = async (
 ) => {
   try {
     const rentalRequest = await getRentalRequestById(
-      req.params.id,
+      req.params.id as string,
       req.user!.userId,
     );
 
@@ -119,7 +111,7 @@ export const updateRental = async (
     );
 
     const rentalRequest = await updateRentalRequest(
-      req.params.id,
+      req.params.id as string,
       req.user!.userId,
       validatedData.status,
     );
@@ -127,6 +119,31 @@ export const updateRental = async (
     res.status(200).json({
       success: true,
       message: "Rental request updated successfully",
+      data: rentalRequest,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+      errorDetails: error,
+    });
+  }
+};
+
+
+export const completeRental = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const rentalRequest = await completeRentalRequest(
+      req.params.id as string,
+      req.user!.userId,
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Rental completed successfully",
       data: rentalRequest,
     });
   } catch (error: any) {
