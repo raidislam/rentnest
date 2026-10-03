@@ -5,32 +5,25 @@ import {
   getMyPaymentsController,
   getPaymentByIdController,
   paymentCallbackController,
+  paymentSuccessController,
+  paymentFailController,
+  paymentCancelController,
 } from "./payment.controller";
 
 import {authenticate,requireTenant} from "../../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post(
-  "/create",
-  authenticate,
-  requireTenant,
-  createPaymentController,
-);
+router.post("/create", authenticate,requireTenant, createPaymentController);
 
-router.post(
-  "/confirm",
-  authenticate,
-  requireTenant,
-  confirmPaymentController,
-);
+router.post("/confirm",authenticate,requireTenant,confirmPaymentController);
 
-router.get(
-  "/",
-  authenticate,
-  requireTenant,
-  getMyPaymentsController,
-);
+// SSLCommerz redirects here (no login token, so no authenticate)
+router.post("/success", paymentSuccessController);
+router.post("/fail", paymentFailController);
+router.post("/cancel", paymentCancelController);
+
+router.get("/",authenticate,requireTenant,getMyPaymentsController);
 
 router.get(
   "/:id",

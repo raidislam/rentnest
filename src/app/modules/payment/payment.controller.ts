@@ -50,6 +50,7 @@ export const confirmPaymentController = async (
 
     const payment = await confirmPayment(
       validatedData.tran_id,
+      validatedData.val_id,
     );
 
     res.status(200).json({
@@ -137,6 +138,71 @@ export const paymentCallbackController = async (
       success: false,
       message: error.message,
       errorDetails: error,
+    });
+  }
+};
+
+// SSLCommerz sends the user back here after a successful payment
+export const paymentSuccessController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { tran_id, val_id } = req.body;
+
+    const payment = await confirmPayment(tran_id, val_id);
+
+    res.status(200).json({
+      success: true,
+      message: "Payment successful",
+      data: payment,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const paymentFailController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { tran_id } = req.body;
+
+    await handlePaymentCallback(tran_id, "FAILED");
+
+    res.status(400).json({
+      success: false,
+      message: "Payment failed",
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const paymentCancelController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { tran_id } = req.body;
+
+    await handlePaymentCallback(tran_id, "CANCELLED");
+
+    res.status(400).json({
+      success: false,
+      message: "Payment cancelled",
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
     });
   }
 };

@@ -112,7 +112,7 @@ export const createPayment = async (
 };
 
 
-export const confirmPayment = async (transactionId: string) => {
+export const confirmPayment = async (transactionId: string, valId: string) => {
   const payment = await prisma.payment.findUnique({
     where: {
       transactionId,
@@ -133,7 +133,7 @@ export const confirmPayment = async (transactionId: string) => {
 
   const response = await axios.get(validationUrl, {
     params: {
-      val_id: transactionId,
+      val_id: valId,
       store_id: sslcommerzConfig.storeId,
       store_passwd: sslcommerzConfig.storePassword,
       format: "json",

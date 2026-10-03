@@ -6,6 +6,7 @@ export const createPaymentSchema = z.object({
 
 export const confirmPaymentSchema = z.object({
   tran_id: z.string().min(1, "Transaction ID is required"),
+  val_id: z.string().min(1, "Validation ID is required"),
 });
 
 export const paymentCallbackSchema = z.object({
