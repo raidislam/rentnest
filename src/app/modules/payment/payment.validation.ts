@@ -12,4 +12,5 @@ export const confirmPaymentSchema = z.object({
 export const paymentCallbackSchema = z.object({
   tran_id: z.string().min(1),
   status: z.string().min(1),
+  val_id: z.string().optional(),
 });

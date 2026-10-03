@@ -126,6 +126,7 @@ export const paymentCallbackController = async (
     const payment = await handlePaymentCallback(
       validatedData.tran_id,
       validatedData.status,
+      validatedData.val_id,
     );
 
     res.status(200).json({
@@ -149,6 +150,10 @@ export const paymentSuccessController = async (
 ) => {
   try {
     const { tran_id, val_id } = req.body;
+
+    if (!tran_id || !val_id) {
+      throw new Error("Transaction ID and Validation ID are required");
+    }
 
     const payment = await confirmPayment(tran_id, val_id);
 

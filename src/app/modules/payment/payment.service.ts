@@ -253,6 +253,7 @@ export const getPaymentById = async (
 export const handlePaymentCallback = async (
   transactionId: string,
   status: string,
+  valId?: string,
 ) => {
   const payment = await prisma.payment.findUnique({
     where: {
@@ -264,27 +265,18 @@ export const handlePaymentCallback = async (
     throw new Error("Payment not found");
   }
 
+  // already paid, don't change it
+  if (payment.status === "COMPLETED") {
+    return payment;
+  }
+
+  // don't trust the status from body, check with SSLCommerz first
   if (status === "VALID" || status === "VALIDATED") {
-    const updatedPayment = await prisma.payment.update({
-      where: {
-        id: payment.id,
-      },
-      data: {
-        status: "COMPLETED",
-        paidAt: new Date(),
-      },
-    });
+    if (!valId) {
+      throw new Error("Validation ID is required");
+    }
 
-    await prisma.rentalRequest.update({
-      where: {
-        id: payment.rentalRequestId,
-      },
-      data: {
-        status: "ACTIVE",
-      },
-    });
-
-    return updatedPayment;
+    return confirmPayment(transactionId, valId);
   }
 
   const updatedPayment = await prisma.payment.update({
