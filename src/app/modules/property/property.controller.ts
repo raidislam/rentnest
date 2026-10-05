@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import {
   createProperty,
@@ -10,6 +10,7 @@ import {
 
 import {
   createPropertySchema,
+  propertyQuerySchema,
   updatePropertySchema,
 } from "./property.validation";
 
@@ -17,34 +18,10 @@ import {
 export const getProperties = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const filters = {
-      location:
-        typeof req.query.location === "string"
-          ? req.query.location
-          : undefined,
-
-      minPrice:
-        typeof req.query.minPrice === "string"
-          ? Number(req.query.minPrice)
-          : undefined,
-
-      maxPrice:
-        typeof req.query.maxPrice === "string"
-          ? Number(req.query.maxPrice)
-          : undefined,
-
-      propertyType:
-        typeof req.query.propertyType === "string"
-          ? req.query.propertyType
-          : undefined,
-
-      amenity:
-        typeof req.query.amenity === "string"
-          ? req.query.amenity
-          : undefined,
-    };
+    const filters = propertyQuerySchema.parse(req.query);
 
     const properties = await getAllProperties(filters);
 
@@ -54,17 +31,14 @@ export const getProperties = async (
       data: properties,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve properties",
-      errorDetails: error,
-    });
+    next(error);
   }
 };
 
 export const getProperty = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const property = await getPropertyById(req.params.id as string);
@@ -74,18 +48,15 @@ export const getProperty = async (
       message: "Property retrieved successfully",
       data: property,
     });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const create = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = createPropertySchema.parse(req.body);
@@ -100,18 +71,15 @@ export const create = async (
       message: "Property created successfully",
       data: property,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const update = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = updatePropertySchema.parse(req.body);
@@ -127,18 +95,15 @@ export const update = async (
       message: "Property updated successfully",
       data: property,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const remove = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     await deleteProperty(
@@ -151,11 +116,7 @@ export const remove = async (
       message: "Property deleted successfully",
       data: null,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };

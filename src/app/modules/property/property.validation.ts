@@ -20,3 +20,23 @@ export const updatePropertySchema = z.object({
   categoryId: z.string().uuid().optional(),
   availability: z.boolean().optional(),
 });
+
+// Query filters for GET /api/properties
+export const propertyQuerySchema = z
+  .object({
+    location: z.string().trim().min(1).optional(),
+    minPrice: z.coerce.number().min(0, "minPrice must be 0 or more").optional(),
+    maxPrice: z.coerce.number().min(0, "maxPrice must be 0 or more").optional(),
+    propertyType: z.string().trim().min(1).optional(),
+    amenity: z.string().trim().min(1).optional(),
+  })
+  .refine(
+    (data) =>
+      data.minPrice === undefined ||
+      data.maxPrice === undefined ||
+      data.minPrice <= data.maxPrice,
+    {
+      message: "minPrice cannot be greater than maxPrice",
+      path: ["minPrice"],
+    },
+  );

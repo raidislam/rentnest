@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import AppError from "../../utils/AppError";
 
 interface CreatePropertyData {
   landlordId: string;
@@ -21,7 +22,7 @@ export const createProperty = async (
   });
 
   if (!category) {
-    throw new Error("Category not found");
+    throw new AppError(404, "Category not found");
   }
 
   const property = await prisma.property.create({
@@ -131,7 +132,7 @@ export const getPropertyById = async (id: string) => {
   });
 
   if (!property) {
-    throw new Error("Property not found");
+    throw new AppError(404, "Property not found");
   }
 
   return property;
@@ -149,11 +150,11 @@ export const updateProperty = async (
   });
 
   if (!property) {
-    throw new Error("Property not found");
+    throw new AppError(404, "Property not found");
   }
 
   if (property.landlordId !== landlordId) {
-    throw new Error("You can only update your own property");
+    throw new AppError(403, "You can only update your own property");
   }
 
   const updatedProperty = await prisma.property.update({
@@ -177,11 +178,11 @@ export const deleteProperty = async (
   });
 
   if (!property) {
-    throw new Error("Property not found");
+    throw new AppError(404, "Property not found");
   }
 
   if (property.landlordId !== landlordId) {
-    throw new Error("You can only delete your own property");
+    throw new AppError(403, "You can only delete your own property");
   }
 
   await prisma.property.delete({
