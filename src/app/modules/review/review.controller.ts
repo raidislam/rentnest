@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import { createReviewSchema } from "./review.validation";
 import { createReview } from "./review.service";
@@ -6,6 +6,7 @@ import { createReview } from "./review.service";
 export const createReviewController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = createReviewSchema.parse(req.body);
@@ -22,11 +23,7 @@ export const createReviewController = async (
       message: "Review created successfully",
       data: review,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };

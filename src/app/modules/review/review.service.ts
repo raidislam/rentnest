@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import AppError from "../../utils/AppError";
 
 export const createReview = async (
   tenantId: string,
@@ -15,7 +16,8 @@ export const createReview = async (
   });
 
   if (!rentalRequest) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only review a property after completing the rental",
     );
   }
@@ -28,7 +30,8 @@ export const createReview = async (
   });
 
   if (existingReview) {
-    throw new Error(
+    throw new AppError(
+      409,
       "You have already reviewed this property",
     );
   }
