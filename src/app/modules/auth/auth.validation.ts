@@ -11,3 +11,10 @@ export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
+
+// Only the name can be changed. strict() rejects other fields like email or role.
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
+  })
+  .strict();
