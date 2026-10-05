@@ -173,6 +173,18 @@ export const updateProperty = async (
     throw new AppError(403, "You can only update your own property");
   }
 
+  if (data.categoryId) {
+    const category = await prisma.category.findUnique({
+      where: {
+        id: data.categoryId,
+      },
+    });
+
+    if (!category) {
+      throw new AppError(404, "Category not found");
+    }
+  }
+
   const updatedProperty = await prisma.property.update({
     where: {
       id: propertyId,
@@ -199,6 +211,20 @@ export const deleteProperty = async (
 
   if (property.landlordId !== landlordId) {
     throw new AppError(403, "You can only delete your own property");
+  }
+
+  // A property with rental history can't be deleted (it is linked to requests/payments)
+  const rentalRequestCount = await prisma.rentalRequest.count({
+    where: {
+      propertyId,
+    },
+  });
+
+  if (rentalRequestCount > 0) {
+    throw new AppError(
+      409,
+      "This property has rental requests and cannot be deleted. Set availability to false instead.",
+    );
   }
 
   await prisma.property.delete({
