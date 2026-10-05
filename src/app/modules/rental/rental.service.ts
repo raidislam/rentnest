@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import AppError from "../../utils/AppError";
 
 interface CreateRentalRequestData {
   tenantId: string;
@@ -16,11 +17,11 @@ export const createRentalRequest = async (
   });
 
   if (!property) {
-    throw new Error("Property not found");
+    throw new AppError(404, "Property not found");
   }
 
   if (!property.availability) {
-    throw new Error("Property is not available");
+    throw new AppError(400, "Property is not available");
   }
 
   const rentalRequest = await prisma.rentalRequest.create({
@@ -83,11 +84,12 @@ export const getRentalRequestById = async (
   });
 
   if (!rentalRequest) {
-    throw new Error("Rental request not found");
+    throw new AppError(404, "Rental request not found");
   }
 
   if (rentalRequest.tenantId !== tenantId) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only view your own rental request",
     );
   }
@@ -143,17 +145,19 @@ export const updateRentalRequest = async (
   });
 
   if (!rentalRequest) {
-    throw new Error("Rental request not found");
+    throw new AppError(404, "Rental request not found");
   }
 
   if (rentalRequest.property.landlordId !== landlordId) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only manage requests for your own properties",
     );
   }
 
   if (rentalRequest.status !== "PENDING") {
-    throw new Error(
+    throw new AppError(
+      400,
       "Only pending rental requests can be updated",
     );
   }
@@ -194,17 +198,19 @@ export const completeRentalRequest = async (
   });
 
   if (!rentalRequest) {
-    throw new Error("Rental request not found");
+    throw new AppError(404, "Rental request not found");
   }
 
   if (rentalRequest.tenantId !== tenantId) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only complete your own rental request",
     );
   }
 
   if (rentalRequest.status !== "ACTIVE") {
-    throw new Error(
+    throw new AppError(
+      400,
       "Only active rental requests can be completed",
     );
   }

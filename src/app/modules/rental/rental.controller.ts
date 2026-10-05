@@ -1,10 +1,11 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { createRentalRequest,getMyRentalRequests,getRentalRequestById, getLandlordRentalRequests,updateRentalRequest,completeRentalRequest} from "./rental.service";
 import { createRentalRequestSchema, updateRentalRequestSchema } from "./rental.validation";
 
 export const createRental = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = createRentalRequestSchema.parse(
@@ -21,12 +22,8 @@ export const createRental = async (
       message: "Rental request submitted successfully",
       data: rentalRequest,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -34,6 +31,7 @@ export const createRental = async (
 export const getMyRentals = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const rentalRequests = await getMyRentalRequests(
@@ -45,18 +43,15 @@ export const getMyRentals = async (
       message: "Rental requests retrieved successfully",
       data: rentalRequests,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getRentalById = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const rentalRequest = await getRentalRequestById(
@@ -69,18 +64,15 @@ export const getRentalById = async (
       message: "Rental request retrieved successfully",
       data: rentalRequest,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getLandlordRentals = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const rentalRequests = await getLandlordRentalRequests(
@@ -92,18 +84,15 @@ export const getLandlordRentals = async (
       message: "Rental requests retrieved successfully",
       data: rentalRequests,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const updateRental = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = updateRentalRequestSchema.parse(
@@ -121,12 +110,8 @@ export const updateRental = async (
       message: "Rental request updated successfully",
       data: rentalRequest,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -134,6 +119,7 @@ export const updateRental = async (
 export const completeRental = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const rentalRequest = await completeRentalRequest(
@@ -146,11 +132,7 @@ export const completeRental = async (
       message: "Rental completed successfully",
       data: rentalRequest,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };

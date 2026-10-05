@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { getLandlordRentals, updateRental } from "./rental.controller";
 import { authenticate, requireLandlord } from "../../middlewares/auth.middleware";
+import { validateIdParam } from "../../middlewares/validateRequest";
 
 
 
@@ -13,6 +14,7 @@ router.patch(
   "/requests/:id",
   authenticate,
   requireLandlord,
+  validateIdParam,
   updateRental,
 );
 export default router;
