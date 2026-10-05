@@ -14,3 +14,7 @@ export const paymentCallbackSchema = z.object({
   status: z.string().min(1),
   val_id: z.string().optional(),
 });
+// SSLCommerz fail/cancel redirects only need the transaction ID
+export const paymentRedirectSchema = z.object({
+  tran_id: z.string().min(1, "Transaction ID is required"),
+});

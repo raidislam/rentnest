@@ -145,7 +145,7 @@ export const confirmPayment = async (transactionId: string, valId: string) => {
   });
 
   if (!payment) {
-    throw new Error("Payment not found");
+    throw new AppError(404, "Payment not found");
   }
 
   if (payment.status === "COMPLETED") {
@@ -171,23 +171,23 @@ export const confirmPayment = async (transactionId: string, valId: string) => {
     validationData?.status !== "VALID" &&
     validationData?.status !== "VALIDATED"
   ) {
-    throw new Error("Payment validation failed");
+    throw new AppError(400, "Payment validation failed");
   }
 
   if (
     validationData?.tran_id !== payment.transactionId
   ) {
-    throw new Error("Transaction ID mismatch");
+    throw new AppError(400, "Transaction ID mismatch");
   }
 
   if (
     Number(validationData?.amount) !== Number(payment.amount)
   ) {
-    throw new Error("Payment amount mismatch");
+    throw new AppError(400, "Payment amount mismatch");
   }
 
   if (validationData?.currency !== "BDT") {
-    throw new Error("Payment currency mismatch");
+    throw new AppError(400, "Payment currency mismatch");
   }
 
   // Update payment and rental together, so both succeed or both fail
@@ -265,11 +265,12 @@ export const getPaymentById = async (
   });
 
   if (!payment) {
-    throw new Error("Payment not found");
+    throw new AppError(404, "Payment not found");
   }
 
   if (payment.rentalRequest.tenantId !== tenantId) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only view your own payment",
     );
   }
@@ -289,7 +290,7 @@ export const handlePaymentCallback = async (
   });
 
   if (!payment) {
-    throw new Error("Payment not found");
+    throw new AppError(404, "Payment not found");
   }
 
   // already paid, don't change it
@@ -300,10 +301,16 @@ export const handlePaymentCallback = async (
   // don't trust the status from body, check with SSLCommerz first
   if (status === "VALID" || status === "VALIDATED") {
     if (!valId) {
-      throw new Error("Validation ID is required");
+      throw new AppError(400, "Validation ID is required");
     }
 
     return confirmPayment(transactionId, valId);
+  }
+
+  // Only an unfinished payment can be marked as failed.
+  // A failed payment can still be retried or later confirmed by SSLCommerz validation.
+  if (payment.status !== "PENDING") {
+    return payment;
   }
 
   const updatedPayment = await prisma.payment.update({

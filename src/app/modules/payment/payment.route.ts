@@ -11,6 +11,7 @@ import {
 } from "./payment.controller";
 
 import {authenticate,requireTenant} from "../../middlewares/auth.middleware";
+import { validateIdParam } from "../../middlewares/validateRequest";
 
 const router = Router();
 
@@ -29,9 +30,11 @@ router.get(
   "/:id",
   authenticate,
   requireTenant,
+  validateIdParam,
   getPaymentByIdController,
 );
 
+// SSLCommerz IPN (server to server notification)
 router.post(
   "/ipn",
   paymentCallbackController,

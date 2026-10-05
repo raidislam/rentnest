@@ -4,6 +4,7 @@ import {
   createPaymentSchema,
   confirmPaymentSchema,
   paymentCallbackSchema,
+  paymentRedirectSchema,
 } from "./payment.validation";
 
 import {
@@ -41,6 +42,7 @@ export const createPaymentController = async (
 export const confirmPaymentController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = confirmPaymentSchema.parse(req.body);
@@ -55,18 +57,15 @@ export const confirmPaymentController = async (
       message: "Payment confirmed successfully",
       data: payment,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getMyPaymentsController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const payments = await getMyPayments(
@@ -78,18 +77,15 @@ export const getMyPaymentsController = async (
       message: "Payment history retrieved successfully",
       data: payments,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getPaymentByIdController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const payment = await getPaymentById(
@@ -102,18 +98,15 @@ export const getPaymentByIdController = async (
       message: "Payment details retrieved successfully",
       data: payment,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const paymentCallbackController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = paymentCallbackSchema.parse(
@@ -131,26 +124,20 @@ export const paymentCallbackController = async (
       message: "Payment callback processed successfully",
       data: payment,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-// SSLCommerz sends the user back here after a successful payment
+// SSLCommerz sends the user back here after a successful payment.
+// We never trust this request alone: confirmPayment checks val_id with SSLCommerz.
 export const paymentSuccessController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const { tran_id, val_id } = req.body;
-
-    if (!tran_id || !val_id) {
-      throw new Error("Transaction ID and Validation ID are required");
-    }
+    const { tran_id, val_id } = confirmPaymentSchema.parse(req.body || {});
 
     const payment = await confirmPayment(tran_id, val_id);
 
@@ -159,52 +146,59 @@ export const paymentSuccessController = async (
       message: "Payment successful",
       data: payment,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const paymentFailController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const { tran_id } = req.body;
+    const { tran_id } = paymentRedirectSchema.parse(req.body || {});
 
-    await handlePaymentCallback(tran_id, "FAILED");
+    const payment = await handlePaymentCallback(tran_id, "FAILED");
 
     res.status(400).json({
       success: false,
-      message: "Payment failed",
+      message:
+        payment.status === "COMPLETED"
+          ? "Payment is already completed"
+          : "Payment failed. You can try the payment again.",
+      errorDetails: {
+        transactionId: payment.transactionId,
+        status: payment.status,
+      },
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const paymentCancelController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
-    const { tran_id } = req.body;
+    const { tran_id } = paymentRedirectSchema.parse(req.body || {});
 
-    await handlePaymentCallback(tran_id, "CANCELLED");
+    const payment = await handlePaymentCallback(tran_id, "CANCELLED");
 
     res.status(400).json({
       success: false,
-      message: "Payment cancelled",
+      message:
+        payment.status === "COMPLETED"
+          ? "Payment is already completed"
+          : "Payment cancelled. You can try the payment again.",
+      errorDetails: {
+        transactionId: payment.transactionId,
+        status: payment.status,
+      },
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+  } catch (error) {
+    next(error);
   }
 };
