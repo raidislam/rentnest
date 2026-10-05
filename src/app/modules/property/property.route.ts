@@ -1,20 +1,13 @@
 import { Router } from "express";
 
-import {create,getProperties,getProperty,remove,update} from "./property.controller";
-
-
+import { getProperties, getProperty } from "./property.controller";
+import { validateIdParam } from "../../middlewares/validateRequest";
 
 const router = Router();
 
+// Public routes. Create/update/delete are in landlord.property.route.ts
 router.get("/", getProperties);
 
-router.get("/:id", getProperty);
-
-router.post("/", create);
-
-router.put("/:id", update);
-
-router.delete("/:id", remove);
-
+router.get("/:id", validateIdParam, getProperty);
 
 export default router;

@@ -4,6 +4,7 @@ import {
   createProperty,
   deleteProperty,
   getAllProperties,
+  getLandlordProperties,
   getPropertyById,
   updateProperty,
 } from "./property.service";
@@ -47,6 +48,24 @@ export const getProperty = async (
       success: true,
       message: "Property retrieved successfully",
       data: property,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMyProperties = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const properties = await getLandlordProperties(req.user!.userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Your properties retrieved successfully",
+      data: properties,
     });
   } catch (error) {
     next(error);
