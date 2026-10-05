@@ -47,3 +47,35 @@ export const createReview = async (
 
   return review;
 };
+
+// Reviews written for properties owned by this landlord
+export const getLandlordReviews = async (landlordId: string) => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      property: {
+        landlordId,
+      },
+    },
+    include: {
+      property: {
+        select: {
+          id: true,
+          title: true,
+          location: true,
+        },
+      },
+      tenant: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return reviews;
+};

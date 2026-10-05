@@ -8,6 +8,7 @@ import rentalRoutes from "./app/modules/rental/rental.route";
 import landlordRentalRoutes from "./app/modules/rental/landlord.rental.route";
 import paymentRoutes from "./app/modules/payment/payment.route";
 import reviewRoutes from "./app/modules/review/review.route";
+import landlordReviewRoutes from "./app/modules/review/landlord.review.route";
 import adminRoutes from "./app/modules/admin/admin.route";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
@@ -34,6 +35,7 @@ app.use("/api/rentals", rentalRoutes);
 app.use("/api/landlord",landlordRentalRoutes);
 app.use("/api/payments",paymentRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/landlord/reviews", landlordReviewRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use(notFound);
