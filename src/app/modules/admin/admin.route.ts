@@ -46,6 +46,7 @@ router.put(
   "/categories/:id",
   authenticate,
   requireAdmin,
+  validateIdParam,
   validateRequest(updateCategorySchema),
   updateExistingCategory,
 );
@@ -54,6 +55,7 @@ router.delete(
   "/categories/:id",
   authenticate,
   requireAdmin,
+  validateIdParam,
   deleteExistingCategory,
 );
 

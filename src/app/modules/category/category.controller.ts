@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {createCategory,deleteCategory,getCategories,updateCategory} from "./category.service";
 export const getAllCategories = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const categories = await getCategories();
@@ -13,15 +14,15 @@ export const getAllCategories = async (
       data: categories,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve categories",
-      errorDetails: error,
-    });
+    next(error);
   }
 };
 
-export const createNewCategory = async ( req: Request, res: Response) => {
+export const createNewCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const category = await createCategory(req.body);
 
@@ -31,15 +32,15 @@ export const createNewCategory = async ( req: Request, res: Response) => {
       data: category,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to create category",
-      errorDetails: error,
-    });
+    next(error);
   }
 };
 
-export const updateExistingCategory = async ( req: Request,res: Response) => {
+export const updateExistingCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const category = await updateCategory(
       req.params.id as string,
@@ -52,17 +53,14 @@ export const updateExistingCategory = async ( req: Request,res: Response) => {
       data: category,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to update category",
-      errorDetails: error,
-    });
+    next(error);
   }
 };
 
 export const deleteExistingCategory = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const category = await deleteCategory(
@@ -75,10 +73,6 @@ export const deleteExistingCategory = async (
       data: category,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to delete category",
-      errorDetails: error,
-    });
+    next(error);
   }
 };
