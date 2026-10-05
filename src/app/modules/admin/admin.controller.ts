@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import {
   getAllUsers,
@@ -12,6 +12,7 @@ import { updateUserStatusSchema } from "./admin.validation";
 export const getAllUsersController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const users = await getAllUsers();
@@ -21,37 +22,34 @@ export const getAllUsersController = async (
       message: "Users retrieved successfully",
       data: users,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const updateUserStatusController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = updateUserStatusSchema.parse(
       req.body,
     );
 
-    const user = await updateUserStatus(req.params.id as string,validatedData.status);
+    const user = await updateUserStatus(
+      req.user!.userId,
+      req.params.id as string,
+      validatedData.status,
+    );
 
     res.status(200).json({
       success: true,
       message: "User status updated successfully",
       data: user,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -60,6 +58,7 @@ export const updateUserStatusController = async (
 export const getAllPropertiesController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const properties = await getAllProperties();
@@ -69,18 +68,15 @@ export const getAllPropertiesController = async (
       message: "Properties retrieved successfully",
       data: properties,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getAllRentalsController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const rentals = await getAllRentals();
@@ -90,11 +86,7 @@ export const getAllRentalsController = async (
       message: "Rental requests retrieved successfully",
       data: rentals,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };

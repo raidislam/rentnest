@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma";
+import AppError from "../../utils/AppError";
 
 export const getAllUsers = async () => {
   const users = await prisma.user.findMany({
@@ -7,6 +8,7 @@ export const getAllUsers = async () => {
       name: true,
       email: true,
       role: true,
+      status: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -19,9 +21,14 @@ export const getAllUsers = async () => {
 };
 
 export const updateUserStatus = async (
+  adminId: string,
   userId: string,
   status: boolean,
 ) => {
+  if (adminId === userId && status === false) {
+    throw new AppError(400, "You cannot ban your own account");
+  }
+
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -29,7 +36,7 @@ export const updateUserStatus = async (
   });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
 
   const updatedUser = await prisma.user.update({
