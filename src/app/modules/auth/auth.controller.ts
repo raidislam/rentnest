@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {
   getCurrentUser,
   loginUser,
@@ -12,6 +12,7 @@ import {
 export const register = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = registerSchema.parse(req.body);
@@ -23,18 +24,15 @@ export const register = async (
       message: "User registered successfully",
       data: user,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || "Registration failed",
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const login = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = loginSchema.parse(req.body);
@@ -46,18 +44,15 @@ export const login = async (
       message: "Login successful",
       data: result,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message || "Login failed",
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
 export const me = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const user = await getCurrentUser(req.user!.userId);
@@ -67,11 +62,7 @@ export const me = async (
       message: "User retrieved successfully",
       data: user,
     });
-  } catch (error: any) {
-    res.status(404).json({
-      success: false,
-      message: error.message || "User not found",
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };

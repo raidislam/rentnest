@@ -1,16 +1,19 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { prisma } from "../lib/prisma";
 
 interface JwtPayload {
   userId: string;
   role: string;
 }
 
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
+  let decoded: JwtPayload;
+
   try {
     const authorization = req.headers.authorization;
 
@@ -34,14 +37,10 @@ export const authenticate = (
       });
     }
 
-    const decoded = jwt.verify(
+    decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string,
     ) as JwtPayload;
-
-    req.user = decoded;
-
-    next();
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -49,6 +48,37 @@ export const authenticate = (
       errorDetails: null,
     });
   }
+
+  // Check the user still exists and is not banned,
+  // so an old token stops working after a ban
+  const user = await prisma.user.findUnique({
+    where: {
+      id: decoded.userId,
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({
+      success: false,
+      message: "User no longer exists",
+      errorDetails: null,
+    });
+  }
+
+  if (!user.status) {
+    return res.status(403).json({
+      success: false,
+      message: "Your account has been banned",
+      errorDetails: null,
+    });
+  }
+
+  req.user = {
+    userId: user.id,
+    role: user.role,
+  };
+
+  next();
 };
 
 export const requireLandlord = (

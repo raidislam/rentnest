@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../../lib/prisma";
 import { generateToken } from "../../utils/jwt";
+import AppError from "../../utils/AppError";
 
 interface RegisterData {
   name: string;
@@ -22,7 +23,7 @@ export const registerUser = async (data: RegisterData) => {
   });
 
   if (existingUser) {
-    throw new Error("User already exists with this email");
+    throw new AppError(409, "User already exists with this email");
   }
 
   const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -52,7 +53,7 @@ export const loginUser = async (data: LoginData) => {
   });
 
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw new AppError(401, "Invalid email or password");
   }
 
   const passwordMatched = await bcrypt.compare(
@@ -61,7 +62,11 @@ export const loginUser = async (data: LoginData) => {
   );
 
   if (!passwordMatched) {
-    throw new Error("Invalid email or password");
+    throw new AppError(401, "Invalid email or password");
+  }
+
+  if (!user.status) {
+    throw new AppError(403, "Your account has been banned");
   }
 
   const token = generateToken({
@@ -94,7 +99,7 @@ export const getCurrentUser = async (userId: string) => {
   });
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError(404, "User not found");
   }
 
   return user;
