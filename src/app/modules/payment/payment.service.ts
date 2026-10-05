@@ -190,24 +190,26 @@ export const confirmPayment = async (transactionId: string, valId: string) => {
     throw new Error("Payment currency mismatch");
   }
 
-  const updatedPayment = await prisma.payment.update({
-    where: {
-      id: payment.id,
-    },
-    data: {
-      status: "COMPLETED",
-      paidAt: new Date(),
-    },
-  });
-
-  await prisma.rentalRequest.update({
-    where: {
-      id: payment.rentalRequestId,
-    },
-    data: {
-      status: "ACTIVE",
-    },
-  });
+  // Update payment and rental together, so both succeed or both fail
+  const [updatedPayment] = await prisma.$transaction([
+    prisma.payment.update({
+      where: {
+        id: payment.id,
+      },
+      data: {
+        status: "COMPLETED",
+        paidAt: new Date(),
+      },
+    }),
+    prisma.rentalRequest.update({
+      where: {
+        id: payment.rentalRequestId,
+      },
+      data: {
+        status: "ACTIVE",
+      },
+    }),
+  ]);
 
   return updatedPayment;
 };
