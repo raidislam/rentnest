@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import {
   createPaymentSchema,
@@ -17,6 +17,7 @@ import {
 export const createPaymentController = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const validatedData = createPaymentSchema.parse(req.body);
@@ -31,12 +32,8 @@ export const createPaymentController = async (
       message: "Payment session created successfully",
       data: payment,
     });
-  } catch (error: any) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-      errorDetails: error,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 

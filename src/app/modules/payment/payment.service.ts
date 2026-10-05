@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import axios from "axios";
 import { sslcommerzConfig } from "../../../config/sslcommerz";
+import AppError from "../../utils/AppError";
 
 export const createPayment = async (
   rentalRequestId: string,
@@ -17,17 +18,19 @@ export const createPayment = async (
   });
 
   if (!rentalRequest) {
-    throw new Error("Rental request not found");
+    throw new AppError(404, "Rental request not found");
   }
 
   if (rentalRequest.tenantId !== tenantId) {
-    throw new Error(
+    throw new AppError(
+      403,
       "You can only make payment for your own rental request",
     );
   }
 
   if (rentalRequest.status !== "APPROVED") {
-    throw new Error(
+    throw new AppError(
+      400,
       "Payment can only be made for an approved rental request",
     );
   }
@@ -38,24 +41,42 @@ export const createPayment = async (
     },
   });
 
-  if (existingPayment) {
-    throw new Error(
-      "Payment already exists for this rental request",
+  if (existingPayment?.status === "COMPLETED") {
+    throw new AppError(
+      409,
+      "Payment is already completed for this rental request",
     );
   }
 
-  const transactionId = `RENT-${Date.now()}`;
+  // New transaction ID for every attempt
+  const transactionId = `RENT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-  const payment = await prisma.payment.create({
-    data: {
-      transactionId,
-      rentalRequestId,
-      amount: rentalRequest.property.price,
-      method: "ONLINE",
-      provider: "SSLCOMMERZ",
-      status: "PENDING",
-    },
-  });
+  let payment;
+
+  if (existingPayment) {
+    // Retry a FAILED or unfinished PENDING payment with a new transaction ID
+    payment = await prisma.payment.update({
+      where: {
+        id: existingPayment.id,
+      },
+      data: {
+        transactionId,
+        amount: rentalRequest.property.price,
+        status: "PENDING",
+      },
+    });
+  } else {
+    payment = await prisma.payment.create({
+      data: {
+        transactionId,
+        rentalRequestId,
+        amount: rentalRequest.property.price,
+        method: "ONLINE",
+        provider: "SSLCOMMERZ",
+        status: "PENDING",
+      },
+    });
+  }
 
   const paymentData = {
     store_id: sslcommerzConfig.storeId,
@@ -94,13 +115,17 @@ export const createPayment = async (
   );
 
   if (!response.data?.GatewayPageURL) {
-    await prisma.payment.delete({
+    // Mark as failed so the tenant can try again
+    await prisma.payment.update({
       where: {
         id: payment.id,
       },
+      data: {
+        status: "FAILED",
+      },
     });
 
-    throw new Error("Failed to create SSLCommerz payment session");
+    throw new AppError(502, "Failed to create SSLCommerz payment session");
   }
 
   return {
